@@ -2,6 +2,8 @@ import pandas as pd
 import os
 from sklearn.model_selection import train_test_split
 import logging
+import yaml
+from utils import load_configurations
 
 log_dir = "./logs"
 os.makedirs(log_dir, exist_ok=True)
@@ -24,7 +26,6 @@ console_handler.setFormatter(formatter)
 file_handler.setFormatter(formatter)
 logger.addHandler(console_handler)
 logger.addHandler(file_handler)
-
 
 def load_data(data_url:str) -> pd.DataFrame:
     try:
@@ -56,6 +57,7 @@ def preprocess_data(df:pd.DataFrame) -> pd.DataFrame:
 def save_data(train_data:pd.DataFrame, test_data:pd.DataFrame, data_path:str) -> None:
     """Save the train and test datasets"""
     try:
+
         raw_data_path = os.path.join(data_path, 'raw')
         os.makedirs(raw_data_path, exist_ok=True)
         train_path = os.path.join(raw_data_path, 'train.csv')
@@ -69,7 +71,8 @@ def save_data(train_data:pd.DataFrame, test_data:pd.DataFrame, data_path:str) ->
 
 def main():
     try:
-        test_size = 0.3
+        params = load_configurations('params.yaml')
+        test_size = params['data_ingestion']['test_size']
         data_path = 'https://raw.githubusercontent.com/vikashishere/Datasets/refs/heads/main/spam.csv'
         df = load_data(data_url=data_path)
         final_df = preprocess_data(df)
