@@ -6,7 +6,8 @@ import json
 from sklearn.metrics import accuracy_score, precision_score, recall_score, roc_auc_score
 import logging
 import yaml
-from dvclive import Live
+from dvclive.live import Live
+from utils import load_configurations
 
 # Ensure the "logs" directory exists
 log_dir = 'logs'
@@ -115,12 +116,20 @@ def main():
         params = load_params(params_path='params.yaml')
         clf = load_model('./models/model.pkl')
         test_data = load_data('./data/processed/test_tfidf.csv')
-        
+    
         X_test = test_data.iloc[:, :-1].values
         y_test = test_data.iloc[:, -1].values
 
         metrics = evaluate_model(clf, X_test, y_test)
+        
+        # Experiment tracking using DVC Live
+        with Live(save_dvc_exp=True) as live:
+            live.log_metric('accuracy :', metrics['accuracy'])
+            live.log_metric('precision', metrics['precision'])
+            live.log_metric('recall :', metrics['recall'])
+            live.log_metric('auc :', metrics['auc'])
 
+            live.log_params(params)
         
         save_metrics(metrics, 'reports/metrics.json')
     except Exception as e:
